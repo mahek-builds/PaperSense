@@ -1,0 +1,8 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.envgit init
+git add .
+git commit -m "Initial clean commit"
+.env
