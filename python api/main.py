@@ -24,8 +24,9 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        # "http://localhost:5173",
+        # "http://127.0.0.1:5173"
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -127,7 +128,7 @@ def query(data: QueryRequest):
         }
 
         payload = {
-            "model": "llama3-8b-8192",  # supported model
+            "model": "llama-3.1-8b-instant",  # supported model
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.2,
             "max_tokens": 500
