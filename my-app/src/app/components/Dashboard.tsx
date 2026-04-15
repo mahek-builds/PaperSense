@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Upload,
   FileText,
+  BookOpen,
   Search,
   Send,
   Mic,
@@ -57,6 +58,7 @@ export default function Dashboard({ autoSummaries }: DashboardProps) {
   const [query, setQuery] = useState("");
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
+  const [activePanel, setActivePanel] = useState<"chat" | "summarize">("chat");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -283,194 +285,237 @@ export default function Dashboard({ autoSummaries }: DashboardProps) {
           )}
         </AnimatePresence>
 
-        {/* Main Chat Area */}
+        {/* Main Workspace Area */}
         <main className="flex-1 flex flex-col">
-          {autoSummaries && summaryCards.length > 0 && (
-            <div className="border-b-4 border-border p-6 flex-shrink-0 bg-card/60">
-              <div className="max-w-4xl mx-auto space-y-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p
-                      className="text-xs uppercase tracking-[0.3em] opacity-50"
-                      style={{ fontFamily: "var(--font-mono)" }}
-                    >
-                      Auto summaries
-                    </p>
-                    <h2 className="text-2xl" style={{ fontFamily: "var(--font-display)" }}>
-                      Ready-to-skim overview
-                    </h2>
-                  </div>
-                  <div
-                    className="px-3 py-1 border-2 border-secondary text-secondary text-xs uppercase tracking-[0.2em]"
+          <div className="border-b-4 border-border px-6 pt-4 flex-shrink-0">
+            <div className="max-w-4xl mx-auto flex items-end gap-6">
+              <button
+                onClick={() => setActivePanel("chat")}
+                className={`px-1 pb-3 border-b-4 transition-colors inline-flex items-center gap-2 ${
+                  activePanel === "chat"
+                    ? "border-primary text-primary"
+                    : "border-transparent opacity-60 hover:opacity-100"
+                }`}
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                <Sparkles className="w-4 h-4" />
+                Chat
+              </button>
+              <button
+                onClick={() => setActivePanel("summarize")}
+                className={`px-1 pb-3 border-b-4 transition-colors inline-flex items-center gap-2 ${
+                  activePanel === "summarize"
+                    ? "border-primary text-primary"
+                    : "border-transparent opacity-60 hover:opacity-100"
+                }`}
+                style={{ fontFamily: "var(--font-mono)" }}
+              >
+                <BookOpen className="w-4 h-4" />
+                Summarize
+              </button>
+            </div>
+          </div>
+
+          {activePanel === "summarize" ? (
+            <section className="flex-1 overflow-y-auto p-6">
+              <div className="max-w-4xl mx-auto">
+                <div className="mb-6">
+                  <p
+                    className="text-xs uppercase tracking-[0.3em] opacity-50"
                     style={{ fontFamily: "var(--font-mono)" }}
                   >
-                    Enabled
-                  </div>
+                    Auto summaries
+                  </p>
+                  <h2 className="text-2xl mt-2" style={{ fontFamily: "var(--font-display)" }}>
+                    Ready-to-skim overview
+                  </h2>
                 </div>
 
-                <div className="grid gap-3">
-                  {summaryCards.slice(0, 2).map((card) => (
-                    <div key={card.id} className="border-2 border-primary/25 bg-primary/5 p-4">
-                      <div className="flex items-start justify-between gap-4 mb-3">
-                        <div>
-                          <h3 className="font-medium">{card.title}</h3>
-                          <p
-                            className="text-xs opacity-50"
+                {!autoSummaries && (
+                  <div className="border-2 border-border bg-card p-6">
+                    <p className="opacity-80">
+                      Auto summaries are turned off. Enable them from Settings to generate summaries after upload.
+                    </p>
+                  </div>
+                )}
+
+                {autoSummaries && summaryCards.length === 0 && (
+                  <div className="border-2 border-border bg-card p-6">
+                    <p className="opacity-80">
+                      No summary yet. Upload a PDF and a summary card will appear here.
+                    </p>
+                  </div>
+                )}
+
+                {autoSummaries && summaryCards.length > 0 && (
+                  <div className="grid gap-3">
+                    {summaryCards.map((card) => (
+                      <div key={card.id} className="border-2 border-primary/25 bg-primary/5 p-4">
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div>
+                            <h3 className="font-medium">{card.title}</h3>
+                            <p
+                              className="text-xs opacity-50"
+                              style={{ fontFamily: "var(--font-mono)" }}
+                            >
+                              {card.pages} pages • {card.chunks} chunks • {card.uploadedAt}
+                            </p>
+                          </div>
+                          <span
+                            className="text-xs uppercase tracking-[0.2em] text-secondary"
                             style={{ fontFamily: "var(--font-mono)" }}
                           >
-                            {card.pages} pages • {card.chunks} chunks • {card.uploadedAt}
-                          </p>
+                            Summary
+                          </span>
                         </div>
-                        <span
-                          className="text-xs uppercase tracking-[0.2em] text-secondary"
-                          style={{ fontFamily: "var(--font-mono)" }}
-                        >
-                          Summary
-                        </span>
+                        <p className="leading-relaxed opacity-90">{card.summary}</p>
                       </div>
-                      <p className="leading-relaxed opacity-90">{card.summary}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            <AnimatePresence>
-              {messages.map((message, index) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-3xl ${
-                      message.type === "user" ? "ml-auto" : "mr-auto"
-                    }`}
-                  >
-                    <div className="flex items-start gap-4">
-                      {message.type === "ai" && (
-                        <div className="w-10 h-10 bg-primary border-2 border-primary flex items-center justify-center flex-shrink-0 mt-1">
-                          <Sparkles className="w-5 h-5 text-background" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <div
-                          className={`p-4 border-2 ${
-                            message.type === "user"
-                              ? "border-border bg-muted"
-                              : "border-primary/30 bg-primary/5"
-                          }`}
-                        >
-                          <p className="leading-relaxed">{message.content}</p>
-                        </div>
-
-                        {message.sources && (
-                          <div className="mt-4 space-y-2">
-                            <div
-                              className="px-2 opacity-50"
-                              style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
-                            >
-                              SOURCE CHUNKS ({message.sources.length})
-                            </div>
-                            {message.sources.map((source, idx) => (
-                              <details
-                                key={idx}
-                                className="border border-border bg-card group"
-                              >
-                                <summary className="px-4 py-3 cursor-pointer hover:bg-muted transition-colors flex items-center justify-between">
-                                  <span
-                                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.875rem" }}
-                                  >
-                                    Page {source.page}, Chunk {source.chunk}
-                                  </span>
-                                  <ChevronDown className="w-4 h-4 opacity-50 group-open:rotate-180 transition-transform" />
-                                </summary>
-                                <div className="px-4 py-3 border-t border-border opacity-70 text-sm">
-                                  {source.text}
-                                </div>
-                              </details>
-                            ))}
-                          </div>
-                        )}
-
-                        {message.confidence && (
-                          <div className="mt-3 flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="h-1 w-32 bg-border"
-                                style={{
-                                  background: `linear-gradient(to right, #4ecca3 ${
-                                    message.confidence * 100
-                                  }%, #2a2a2a ${message.confidence * 100}%)`,
-                                }}
-                              ></div>
-                              <span
-                                className="text-secondary"
-                                style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
-                              >
-                                {(message.confidence * 100).toFixed(0)}% confidence
-                              </span>
-                            </div>
-                            <button className="p-2 hover:bg-muted border border-border transition-colors">
-                              <Copy className="w-4 h-4 opacity-50" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      {message.type === "user" && (
-                        <div className="w-10 h-10 border-2 border-muted-foreground flex items-center justify-center flex-shrink-0 mt-1">
-                          <div className="w-2 h-2 bg-muted-foreground"></div>
-                        </div>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-
-          {/* Input Area */}
-          <div className="border-t-4 border-border p-6 flex-shrink-0">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex gap-3">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                    placeholder="Ask something about your document..."
-                    className="w-full px-6 py-4 bg-input border-2 border-border focus:border-primary outline-none transition-colors pr-14"
-                    style={{ fontFamily: "var(--font-mono)" }}
-                  />
-                  <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-muted transition-colors">
-                    <Mic className="w-5 h-5 opacity-50" />
-                  </button>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleSendMessage}
-                  disabled={isAsking}
-                  className="px-8 py-4 bg-primary text-background border-2 border-primary hover:bg-primary/90 transition-colors flex items-center gap-2"
-                >
-                  <Send className="w-5 h-5" />
-                  <span style={{ fontFamily: "var(--font-mono)" }}>{isAsking ? "Asking..." : "Send"}</span>
-                </motion.button>
+                )}
               </div>
-              <p
-                className="mt-3 opacity-50 text-center"
-                style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
-              >
-                AI responses may contain inaccuracies. Always verify important information.
-              </p>
-            </div>
-          </div>
+            </section>
+          ) : (
+            <>
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <AnimatePresence>
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={message.id}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-3xl ${
+                          message.type === "user" ? "ml-auto" : "mr-auto"
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          {message.type === "ai" && (
+                            <div className="w-10 h-10 bg-primary border-2 border-primary flex items-center justify-center flex-shrink-0 mt-1">
+                              <Sparkles className="w-5 h-5 text-background" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <div
+                              className={`p-4 border-2 ${
+                                message.type === "user"
+                                  ? "border-border bg-muted"
+                                  : "border-primary/30 bg-primary/5"
+                              }`}
+                            >
+                              <p className="leading-relaxed">{message.content}</p>
+                            </div>
+
+                            {message.sources && (
+                              <div className="mt-4 space-y-2">
+                                <div
+                                  className="px-2 opacity-50"
+                                  style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
+                                >
+                                  SOURCE CHUNKS ({message.sources.length})
+                                </div>
+                                {message.sources.map((source, idx) => (
+                                  <details
+                                    key={idx}
+                                    className="border border-border bg-card group"
+                                  >
+                                    <summary className="px-4 py-3 cursor-pointer hover:bg-muted transition-colors flex items-center justify-between">
+                                      <span
+                                        style={{ fontFamily: "var(--font-mono)", fontSize: "0.875rem" }}
+                                      >
+                                        Page {source.page}, Chunk {source.chunk}
+                                      </span>
+                                      <ChevronDown className="w-4 h-4 opacity-50 group-open:rotate-180 transition-transform" />
+                                    </summary>
+                                    <div className="px-4 py-3 border-t border-border opacity-70 text-sm">
+                                      {source.text}
+                                    </div>
+                                  </details>
+                                ))}
+                              </div>
+                            )}
+
+                            {message.confidence && (
+                              <div className="mt-3 flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="h-1 w-32 bg-border"
+                                    style={{
+                                      background: `linear-gradient(to right, #4ecca3 ${
+                                        message.confidence * 100
+                                      }%, #2a2a2a ${message.confidence * 100}%)`,
+                                    }}
+                                  ></div>
+                                  <span
+                                    className="text-secondary"
+                                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
+                                  >
+                                    {(message.confidence * 100).toFixed(0)}% confidence
+                                  </span>
+                                </div>
+                                <button className="p-2 hover:bg-muted border border-border transition-colors">
+                                  <Copy className="w-4 h-4 opacity-50" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          {message.type === "user" && (
+                            <div className="w-10 h-10 border-2 border-muted-foreground flex items-center justify-center flex-shrink-0 mt-1">
+                              <div className="w-2 h-2 bg-muted-foreground"></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {/* Input Area */}
+              <div className="border-t-4 border-border p-6 flex-shrink-0">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex gap-3">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                        placeholder="Ask something about your document..."
+                        className="w-full px-6 py-4 bg-input border-2 border-border focus:border-primary outline-none transition-colors pr-14"
+                        style={{ fontFamily: "var(--font-mono)" }}
+                      />
+                      <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-muted transition-colors">
+                        <Mic className="w-5 h-5 opacity-50" />
+                      </button>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleSendMessage}
+                      disabled={isAsking}
+                      className="px-8 py-4 bg-primary text-background border-2 border-primary hover:bg-primary/90 transition-colors flex items-center gap-2"
+                    >
+                      <Send className="w-5 h-5" />
+                      <span style={{ fontFamily: "var(--font-mono)" }}>
+                        {isAsking ? "Asking..." : "Send"}
+                      </span>
+                    </motion.button>
+                  </div>
+                  <p
+                    className="mt-3 opacity-50 text-center"
+                    style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
+                  >
+                    AI responses may contain inaccuracies. Always verify important information.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </main>
       </div>
 
