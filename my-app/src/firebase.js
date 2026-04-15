@@ -2,24 +2,29 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDjV0yUy6M05DW5KBaRBz5hlQw6DsQU3xM",
-  authDomain:
-    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ai-research-analyst-a5ca8.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ai-research-analyst-a5ca8",
-  storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ai-research-analyst-a5ca8.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "609122516260",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:609122516260:web:ab4a0097041ff3058d87b1",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const hasRequiredFirebaseConfig =
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.appId;
+const requiredFirebaseEnvVars = [
+  "VITE_FIREBASE_API_KEY",
+  "VITE_FIREBASE_AUTH_DOMAIN",
+  "VITE_FIREBASE_PROJECT_ID",
+  "VITE_FIREBASE_APP_ID",
+];
 
-if (!hasRequiredFirebaseConfig) {
-  throw new Error("Firebase is not configured. Check your VITE_FIREBASE_* environment variables.");
+const missingFirebaseEnvVars = requiredFirebaseEnvVars.filter(
+  (envKey) => !import.meta.env[envKey]
+);
+
+if (missingFirebaseEnvVars.length > 0) {
+  throw new Error(
+    `Firebase is not configured. Missing environment variables: ${missingFirebaseEnvVars.join(", ")}`
+  );
 }
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
