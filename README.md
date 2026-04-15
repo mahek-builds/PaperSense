@@ -139,13 +139,16 @@ Final Answer
 
 ##  File Storage
 
-```text
+text
 faiss_index/
  ├── index.faiss   → Vector embeddings
  └── index.pkl     → Metadata + mapping
 
 temp/
  └── uploaded.pdf  → Temporary file storage
+
+
+
 ##  Why PaperSense?
 -  AI-powered reasoning over PDFs
 -  Fast semantic document search
