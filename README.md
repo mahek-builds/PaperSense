@@ -138,18 +138,17 @@ faiss_index/
 
 temp/
  └── uploaded.pdf  → Temporary file storage
-
+```
 
 ## 🌐 Live Project
 
 -  Frontend (Live App):https://papersense.netlify.app/
 -  Backend API (AI Model):https://mahek2bhatia-ai-research-analyst.hf.space/docs
-```
 
+-  
 ##  Why PaperSense?
-
--  Fast semantic document search
 -  AI-powered reasoning over PDFs
+-  Fast semantic document search
 -  Works like a "ChatGPT for your documents"
 -  Lightweight + scalable architecture
 
