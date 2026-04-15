@@ -107,7 +107,7 @@ PaperSense is an AI-powered document intelligence system that allows users to up
 }
 ```
 
-```
+
 
 ## 🌐 Live Project
 
