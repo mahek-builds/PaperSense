@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function Settings() {
+interface SettingsProps {
+  autoSummaries: boolean;
+  onToggleAutoSummaries: (enabled: boolean) => void;
+}
+
+export default function Settings({ autoSummaries, onToggleAutoSummaries }: SettingsProps) {
   const [apiConnected, setApiConnected] = useState(true);
   const [selectedModel, setSelectedModel] = useState("llama-3.1-70b");
   const [darkMode, setDarkMode] = useState(true);
@@ -98,11 +103,51 @@ export default function Settings() {
           </div>
         </motion.section>
 
+        {/* Summary Preferences */}
+        <motion.section
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="border-4 border-border bg-card p-8"
+        >
+          <h2
+            className="mb-6"
+            style={{ fontFamily: "var(--font-display)", fontSize: "1.75rem" }}
+          >
+            Summary Preferences
+          </h2>
+          <div className="flex items-center justify-between gap-6 p-4 border-2 border-border bg-background">
+            <div>
+              <div className="font-medium mb-1">Auto summaries</div>
+              <div
+                className="opacity-50"
+                style={{ fontFamily: "var(--font-mono)", fontSize: "0.875rem" }}
+              >
+                Generate a ready-to-skim summary card after each successful upload.
+              </div>
+            </div>
+            <button
+              onClick={() => onToggleAutoSummaries(!autoSummaries)}
+              className={`relative w-16 h-8 border-2 border-border transition-colors ${
+                autoSummaries ? "bg-primary" : "bg-muted"
+              }`}
+              aria-pressed={autoSummaries}
+              aria-label="Toggle auto summaries"
+            >
+              <motion.div
+                className="absolute top-1 w-4 h-4 bg-background border-2 border-foreground"
+                animate={{ left: autoSummaries ? "calc(100% - 1.5rem)" : "0.25rem" }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              />
+            </button>
+          </div>
+        </motion.section>
+
         {/* Model Selection */}
         <motion.section
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="border-4 border-border bg-card p-8"
         >
           <h2
@@ -146,7 +191,7 @@ export default function Settings() {
         <motion.section
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.3 }}
           className="border-4 border-border bg-card p-8"
         >
           <h2
@@ -191,7 +236,7 @@ export default function Settings() {
         <motion.section
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.4 }}
           className="border-4 border-border bg-card p-8"
         >
           <h2
@@ -235,7 +280,7 @@ export default function Settings() {
         <motion.section
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
           className="border-4 border-border bg-card p-8"
         >
           <h2

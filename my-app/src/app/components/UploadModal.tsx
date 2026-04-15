@@ -6,7 +6,13 @@ import { uploadPdf } from "../api";
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUploadSuccess: (doc: { name: string; pages: number; chunks: number }) => void;
+  onUploadSuccess: (doc: {
+    name: string;
+    pages: number;
+    chunks: number;
+    previewText?: string;
+    message?: string;
+  }) => void;
 }
 
 type UploadState = "idle" | "uploading" | "processing" | "embedding" | "success" | "error";

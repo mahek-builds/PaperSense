@@ -28,6 +28,19 @@ interface Document {
   uploadedAt: string;
 }
 
+interface SummaryCard {
+  id: string;
+  title: string;
+  summary: string;
+  pages: number;
+  chunks: number;
+  uploadedAt: string;
+}
+
+interface DashboardProps {
+  autoSummaries: boolean;
+}
+
 interface Message {
   id: string;
   type: "user" | "ai";
@@ -36,7 +49,7 @@ interface Message {
   confidence?: number;
 }
 
-export default function Dashboard() {
+export default function Dashboard({ autoSummaries }: DashboardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -54,6 +67,7 @@ export default function Dashboard() {
   ]);
 
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [summaryCards, setSummaryCards] = useState<SummaryCard[]>([]);
 
   const handleLogout = async () => {
     const { error } = await logOut();
@@ -97,7 +111,13 @@ export default function Dashboard() {
     }
   };
 
-  const handleUploadSuccess = (doc: { name: string; pages: number; chunks: number }) => {
+  const handleUploadSuccess = (doc: {
+    name: string;
+    pages: number;
+    chunks: number;
+    previewText?: string;
+    message?: string;
+  }) => {
     const uploadedDoc: Document = {
       id: Date.now().toString(),
       name: doc.name,
@@ -108,6 +128,23 @@ export default function Dashboard() {
 
     setDocuments((prev) => [uploadedDoc, ...prev]);
     setSelectedDoc(uploadedDoc.id);
+
+    if (autoSummaries) {
+      const summaryText =
+        doc.previewText?.trim() || doc.message?.trim() || "Freshly indexed and ready for analysis.";
+
+      setSummaryCards((prev) => [
+        {
+          id: uploadedDoc.id,
+          title: uploadedDoc.name,
+          summary: summaryText,
+          pages: uploadedDoc.pages,
+          chunks: uploadedDoc.chunks,
+          uploadedAt: uploadedDoc.uploadedAt,
+        },
+        ...prev,
+      ]);
+    }
   };
 
   return (
@@ -248,6 +285,57 @@ export default function Dashboard() {
 
         {/* Main Chat Area */}
         <main className="flex-1 flex flex-col">
+          {autoSummaries && summaryCards.length > 0 && (
+            <div className="border-b-4 border-border p-6 flex-shrink-0 bg-card/60">
+              <div className="max-w-4xl mx-auto space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p
+                      className="text-xs uppercase tracking-[0.3em] opacity-50"
+                      style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                      Auto summaries
+                    </p>
+                    <h2 className="text-2xl" style={{ fontFamily: "var(--font-display)" }}>
+                      Ready-to-skim overview
+                    </h2>
+                  </div>
+                  <div
+                    className="px-3 py-1 border-2 border-secondary text-secondary text-xs uppercase tracking-[0.2em]"
+                    style={{ fontFamily: "var(--font-mono)" }}
+                  >
+                    Enabled
+                  </div>
+                </div>
+
+                <div className="grid gap-3">
+                  {summaryCards.slice(0, 2).map((card) => (
+                    <div key={card.id} className="border-2 border-primary/25 bg-primary/5 p-4">
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div>
+                          <h3 className="font-medium">{card.title}</h3>
+                          <p
+                            className="text-xs opacity-50"
+                            style={{ fontFamily: "var(--font-mono)" }}
+                          >
+                            {card.pages} pages • {card.chunks} chunks • {card.uploadedAt}
+                          </p>
+                        </div>
+                        <span
+                          className="text-xs uppercase tracking-[0.2em] text-secondary"
+                          style={{ fontFamily: "var(--font-mono)" }}
+                        >
+                          Summary
+                        </span>
+                      </div>
+                      <p className="leading-relaxed opacity-90">{card.summary}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <AnimatePresence>
