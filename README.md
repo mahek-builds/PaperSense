@@ -107,6 +107,14 @@ PaperSense is an AI-powered document intelligence system that allows users to up
 }
 ```
 
+```
+
+## 🌐 Live Project
+
+-  Frontend (Live App):https://papersense.netlify.app/
+-  Backend API (AI Model):https://mahek2bhatia-ai-research-analyst.hf.space/docs
+
+ 
 ##  Architecture Flow
 
 PDF Upload  
@@ -138,14 +146,6 @@ faiss_index/
 
 temp/
  └── uploaded.pdf  → Temporary file storage
-```
-
-## 🌐 Live Project
-
--  Frontend (Live App):https://papersense.netlify.app/
--  Backend API (AI Model):https://mahek2bhatia-ai-research-analyst.hf.space/docs
-
--  
 ##  Why PaperSense?
 -  AI-powered reasoning over PDFs
 -  Fast semantic document search
