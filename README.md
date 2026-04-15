@@ -2,17 +2,17 @@
 
 PaperSense is an AI-powered document intelligence system that allows users to upload PDFs and ask context-aware questions using semantic search (FAISS) and LLMs (Groq API).
 
-## 🚀 Features
+##  Features
 
-- 📄 PDF Upload & Processing via FastAPI
-- 🧠 Text extraction + chunking for better retrieval
-- 🔍 Semantic Search using FAISS vector database
-- 🤖 Context-aware Q&A using Groq LLaMA 3.1
-- 🧾 Automatic embedding generation using HuggingFace Transformers
-- ⚡ Persistent vector storage (FAISS index saved locally)
-- 🌐 CORS-enabled backend for frontend integration
+-  PDF Upload & Processing via FastAPI
+-  Text extraction + chunking for better retrieval
+-  Semantic Search using FAISS vector database
+-  Context-aware Q&A using Groq LLaMA 3.1
+-  Automatic embedding generation using HuggingFace Transformers
+-  Persistent vector storage (FAISS index saved locally)
+-  CORS-enabled backend for frontend integration
 
-## 🏗 Tech Stack
+##  Tech Stack
 
 - **Backend:** FastAPI
 - **Embeddings:** HuggingFace sentence-transformers/all-MiniLM-L6-v2
@@ -55,7 +55,7 @@ PaperSense is an AI-powered document intelligence system that allows users to up
 
 ## 📌 API Endpoints
 
-### 🟢 Home
+###  Home
 
 **GET /**
 
@@ -107,7 +107,7 @@ PaperSense is an AI-powered document intelligence system that allows users to up
 }
 ```
 
-## 🧠 Architecture Flow
+##  Architecture Flow
 
 PDF Upload  
 ↓  
@@ -129,7 +129,7 @@ Groq LLM (LLaMA 3.1)
 ↓  
 Final Answer
 
-## 📁 File Storage
+##  File Storage
 
 ```text
 faiss_index/
@@ -138,16 +138,22 @@ faiss_index/
 
 temp/
  └── uploaded.pdf  → Temporary file storage
+
+
+## 🌐 Live Project
+
+-  Frontend (Live App):https://papersense.netlify.app/
+-  Backend API (AI Model):https://mahek2bhatia-ai-research-analyst.hf.space/docs
 ```
 
-## 🎯 Why PaperSense?
+##  Why PaperSense?
 
-- 🚀 Fast semantic document search
-- 🧠 AI-powered reasoning over PDFs
-- 📄 Works like a "ChatGPT for your documents"
-- ⚡ Lightweight + scalable architecture
+-  Fast semantic document search
+-  AI-powered reasoning over PDFs
+-  Works like a "ChatGPT for your documents"
+-  Lightweight + scalable architecture
 
-## 🔮 Future Enhancements
+##  Future Enhancements
 
 - Multi-PDF chat support
 - File auto-cleanup after processing
