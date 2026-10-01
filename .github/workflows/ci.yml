@@ -1,0 +1,61 @@
+name: PaperSense CI
+
+on:
+  push:
+    paths:
+      - "python api/**"
+      - "my-app/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "python api/**"
+      - "my-app/**"
+      - ".github/workflows/ci.yml"
+
+jobs:
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r "python api/requirements.txt"
+
+      - name: Build Docker image
+        run: docker build -t papersense-api "./python api"
+
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: my-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: my-app
+
+      - name: Build
+        run: npm run build
+        working-directory: my-app
+
+      - name: Build Docker image
+        run: docker build -t papersense-frontend ./my-app
