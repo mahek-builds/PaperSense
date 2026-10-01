@@ -3,13 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 from pathlib import Path
-import requests
 from dotenv import load_dotenv
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain_qdrant import QdrantVectorStore
+from qdrant_client import QdrantClient
+from groq import Groq
 
 
 # # Load environment variables
@@ -20,7 +21,12 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY not found in .env")
 
-INDEX_DIR = "faiss_index"
+QDRANT_URL=os.getenv("QDRANT_URL")
+QDRANT_API_KEY=os.getenv("QDRANT_API_KEY")
+COLLECTION_NAME="PaperSense-documents"
+
+if not QDRANT_URL or not QDRANT_API_KEY:
+    raise ValueError("QDRANT_URL and QDRANT_API_KEY not found in .env")
 
 app = FastAPI()
 
@@ -46,17 +52,20 @@ embeddings = HuggingFaceEmbeddings(
 class QueryRequest(BaseModel):
     question: str
 
-# Load FAISS index at startup
+# Load the Qdrant collection at startup, if it already exists.
 @app.on_event("startup")
-def load_faiss_index():
+def load_qdrant_collection():
     global db
-    index_file = os.path.join(INDEX_DIR, "index.faiss")
-    store_file = os.path.join(INDEX_DIR, "index.pkl")
-    if os.path.exists(index_file) and os.path.exists(store_file):
-        db = FAISS.load_local(
-            INDEX_DIR,
-            embeddings,
-            allow_dangerous_deserialization=True
+    client=QdrantClient(
+        url=QDRANT_URL,
+        api_key=QDRANT_API_KEY
+    )
+    if client.collection_exists(COLLECTION_NAME):
+        db=QdrantVectorStore.from_existing_collection(
+            collection_name=COLLECTION_NAME,
+            embedding=embeddings,
+            url=QDRANT_URL,
+            api_key=QDRANT_API_KEY,
         )
 
 # Home route
@@ -88,22 +97,27 @@ async def upload_pdf(file: UploadFile = File(...)):
         if not docs:
             return {"error": "No readable content found in PDF"}
 
-        # Add to FAISS DB
+        # Create the collection on the first upload; otherwise append chunks.
         if db is None:
-            db = FAISS.from_documents(docs, embeddings)
+            db = QdrantVectorStore.from_documents(
+                docs,
+                embedding=embeddings,
+                api_key=QDRANT_API_KEY,
+                url=QDRANT_URL,
+                collection_name=COLLECTION_NAME,
+            )
         else:
             db.add_documents(docs)
 
-        os.makedirs(INDEX_DIR, exist_ok=True)
-        db.save_local(INDEX_DIR)
-
-        preview_text = " ".join("\n\n".join(doc.page_content for doc in docs[:2]).split())[:700]
+        preview_text = " ".join(
+            "\n\n".join(doc.page_content for doc in docs[:2]).split()
+        )[:700]
 
         return {
-            "message": "PDF uploaded, embedded, and merged into vector index",
+            "message": "PDF uploaded, embedded, and stored in Qdrant",
             "chunks_added": len(docs),
             "pages_read": len(documents),
-            "preview_text": preview_text
+            "preview_text": preview_text,
         }
 #new wcahnges
     except Exception as e:
@@ -125,33 +139,17 @@ def query(data: QueryRequest):
         # Prepare prompt
         prompt = f"Answer the question based on the context below:\n\nContext:\n{context}\n\nQuestion:\n{data.question}"
 
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        model = "openai/gpt-oss-20b"
 
-        payload = {
-            "model": "openai/gpt-oss-20b",  # supported model
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.2,
-            "max_tokens": 500
-        }
-
-        # Make API request
-        response = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=30
+        groq_client = Groq(api_key=GROQ_API_KEY)
+        response = groq_client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            max_tokens=500,
         )
-        response.raise_for_status()
-        answer = response.json()["choices"][0]["message"]["content"]
+        return {"answer": response.choices[0].message.content}
 
-        return {"answer": answer}
 
-    except requests.exceptions.Timeout:
-        return {"error": "Request timed out. Groq API is taking too long."}
-    except requests.exceptions.HTTPError as e:
-        return {"error": f"HTTP error: {e}, Response: {response.text}"}
     except Exception as e:
         return {"error": str(e)}

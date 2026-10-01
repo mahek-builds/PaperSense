@@ -9,3 +9,6 @@ langchain-huggingface
 pypdf
 sentence-transformers
 faiss-cpu
+langchain-qdrant
+qdrant-client
+groq

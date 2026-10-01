@@ -1,0 +1,24 @@
+services:
+  # ── Python FastAPI backend ──────────────────────────────────────
+  api:
+    build:
+      context: ./python api
+      dockerfile: Dockerfile
+    container_name: papersense-api
+    ports:
+      - "7860:7860"
+    env_file:
+      - ./python api/.env
+    volumes:
+      - faiss_data:/app/faiss_index
+      - temp_data:/app/temp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  faiss_data:
+  temp_data:
